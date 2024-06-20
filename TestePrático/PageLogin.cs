@@ -5,147 +5,118 @@ using System.Windows.Forms;
 
 namespace TestePrático
 {
-	public partial class PageLogin : Form
-	{
-		private Login login;
+    public partial class PageLogin : Form
+    {
+        private Login login;
 
-		public PageLogin()
-		{
-			InitializeComponent();
-			login = new Login();
-			SetPlaceholders();
-		}
+        public PageLogin()
+        {
+            InitializeComponent();
+            login = new Login();
+            SetPlaceholders();
+        }
 
-		private void SetPlaceholders()
-		{
-			if (string.IsNullOrWhiteSpace(txtEmail.Text))
-			{
-				txtEmail.Text = "E-mail";
-				txtEmail.ForeColor = Color.Gray;
-			}
+        private void SetPlaceholders()
+        {
+            SetPlaceholder(txtEmail, "E-mail");
+            SetPlaceholder(txtSenha, "Senha", false);
 
-			if (string.IsNullOrWhiteSpace(txtSenha.Text))
-			{
-				txtSenha.Text = "Senha";
-				txtSenha.ForeColor = Color.Gray;
-				txtSenha.UseSystemPasswordChar = false;
-			}
+            txtEmail.Enter += (s, e) => RemovePlaceholder(txtEmail, "E-mail");
+            txtEmail.Leave += (s, e) => SetPlaceholder(txtEmail, "E-mail");
+            txtSenha.Enter += (s, e) => RemovePlaceholder(txtSenha, "Senha", false);
+            txtSenha.Leave += (s, e) => SetPlaceholder(txtSenha, "Senha", false);
+        }
 
-			txtEmail.Enter += RemoveEmailPlaceholder;
-			txtEmail.Leave += SetEmailPlaceholder;
-			txtSenha.Enter += RemovePasswordPlaceholder;
-			txtSenha.Leave += SetPasswordPlaceholder;
-		}
+        private void SetPlaceholder(TextBox textBox, string placeholder, bool isPassword = true)
+        {
+            if (string.IsNullOrWhiteSpace(textBox.Text))
+            {
+                textBox.Text = placeholder;
+                textBox.ForeColor = Color.Gray;
+                textBox.UseSystemPasswordChar = !isPassword;
+            }
+        }
 
-		private void RemoveEmailPlaceholder(object sender, EventArgs e)
-		{
-			if (txtEmail.Text == "E-mail")
-			{
-				txtEmail.Text = "";
-				txtEmail.ForeColor = Color.Black;
-			}
-		}
+        private void RemovePlaceholder(TextBox textBox, string placeholder, bool isPassword = true)
+        {
+            if (textBox.Text == placeholder)
+            {
+                textBox.Text = "";
+                textBox.ForeColor = Color.Black;
+                textBox.UseSystemPasswordChar = isPassword;
+            }
+        }
 
-		private void SetEmailPlaceholder(object sender, EventArgs e)
-		{
-			if (string.IsNullOrWhiteSpace(txtEmail.Text))
-			{
-				txtEmail.Text = "E-mail";
-				txtEmail.ForeColor = Color.Gray;
-			}
-		}
+        private void btnEntrar_Click(object sender, EventArgs e)
+        {
+            string email = txtEmail.Text.Trim();
+            string senha = txtSenha.Text.Trim();
 
-		private void RemovePasswordPlaceholder(object sender, EventArgs e)
-		{
-			if (txtSenha.Text == "Senha")
-			{
-				txtSenha.Text = "";
-				txtSenha.ForeColor = Color.Black;
-				txtSenha.UseSystemPasswordChar = true;
-			}
-		}
+            if (email == "E-mail") email = "";
+            if (senha == "Senha") senha = "";
 
-		private void SetPasswordPlaceholder(object sender, EventArgs e)
-		{
-			if (string.IsNullOrWhiteSpace(txtSenha.Text))
-			{
-				txtSenha.Text = "Senha";
-				txtSenha.ForeColor = Color.Gray;
-				txtSenha.UseSystemPasswordChar = false;
-			}
-		}
+            if (!IsValidEmail(email))
+            {
+                MessageBox.Show("Por favor, insira um email válido.");
+                return;
+            }
 
-		private void btnEntrar_Click(object sender, EventArgs e)
-		{
-			string email = txtEmail.Text;
-			string senha = txtSenha.Text;
+            if (!IsValidPassword(senha))
+            {
+                MessageBox.Show("A senha deve ter entre 8 e 12 caracteres, e deve conter letras e números.");
+                return;
+            }
 
-			// Remove placeholders para validação
-			if (email == "E-mail") email = "";
-			if (senha == "Senha") senha = "";
+            if (login.ValidateLogin(email, senha))
+            {
+                int userId = login.GetUserIdByEmail(email);
+                string nome = login.GetNomeById(userId);
+                Session.StartSession(userId, email, nome);
 
-			if (!IsValidEmail(email))
-			{
-				MessageBox.Show("Por favor, insira um email válido.");
-				return;
-			}
+                MessageBox.Show("Login bem-sucedido!");
+                this.Hide();
+                FormMain formMain = new FormMain();
+                formMain.Show();
+            }
+            else
+            {
+                MessageBox.Show("Email ou senha incorretos.");
+            }
+        }
 
-			if (!IsValidPassword(senha))
-			{
-				MessageBox.Show("A senha deve ter entre 8 e 12 caracteres, e deve conter letras e números.");
-				return;
-			}
+        private bool IsValidEmail(string email)
+        {
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
-			if (login.ValidateLogin(email, senha))
-			{
-				int userId = login.GetUserIdByEmail(email);
-				string nome = login.GetNomeById(userId);
-				Session.StartSession(userId, email, nome);
+        private bool IsValidPassword(string password)
+        {
+            if (password.Length < 8 || password.Length > 12)
+                return false;
 
-				MessageBox.Show("Login bem-sucedido!");
-				this.Hide();
-				FormMain formMain = new FormMain();
-				formMain.Show();
-			}
-			else
-			{
-				MessageBox.Show("Email ou senha incorretos.");
-			}
-		}
+            bool hasLetter = false;
+            bool hasDigit = false;
 
-		private bool IsValidEmail(string email)
-		{
-			try
-			{
-				var addr = new System.Net.Mail.MailAddress(email);
-				return addr.Address == email;
-			}
-			catch
-			{
-				return false;
-			}
-		}
+            foreach (char c in password)
+            {
+                if (char.IsLetter(c))
+                    hasLetter = true;
+                else if (char.IsDigit(c))
+                    hasDigit = true;
 
-		private bool IsValidPassword(string password)
-		{
-			if (password.Length < 8 || password.Length > 12)
-				return false;
+                if (hasLetter && hasDigit)
+                    return true;
+            }
 
-			bool hasLetter = false;
-			bool hasDigit = false;
-
-			foreach (char c in password)
-			{
-				if (char.IsLetter(c))
-					hasLetter = true;
-				else if (char.IsDigit(c))
-					hasDigit = true;
-
-				if (hasLetter && hasDigit)
-					return true;
-			}
-
-			return false;
-		}
-	}
+            return false;
+        }
+    }
 }
