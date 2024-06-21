@@ -1,26 +1,28 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
-using TestePrático;
 
 namespace TestePrático
 {
     public partial class FormVisualizar : Form
     {
         private int turmaId;
+        private Login database;
 
         public FormVisualizar(int turmaId)
         {
             InitializeComponent();
             this.turmaId = turmaId;
+            database = new Login();
 
             PreencherDadosTurma();
+            CarregarAtividades();
             this.FormClosing += FormVisualizar_FormClosing;
         }
 
         private void PreencherDadosTurma()
         {
-            Login database = new Login();
             Turma turma = database.GetTurmaById(turmaId);
 
             if (turma != null)
@@ -35,18 +37,48 @@ namespace TestePrático
             }
         }
 
+        private void CarregarAtividades()
+        {
+            dgvAtividades.Rows.Clear();
+            dgvAtividades.Columns.Clear();
+
+            dgvAtividades.Columns.Add("Id", "Número");
+            dgvAtividades.Columns.Add("Descricao", "Descrição");
+
+            DataGridViewButtonColumn btnVisualizar = new DataGridViewButtonColumn();
+            btnVisualizar.HeaderText = "Visualizar";
+            btnVisualizar.Name = "Visualizar";
+            btnVisualizar.Text = "Visualizar";
+            btnVisualizar.UseColumnTextForButtonValue = true;
+            dgvAtividades.Columns.Add(btnVisualizar);
+
+            List<Atividade> atividades = database.GetAtividadesByTurma(turmaId);
+
+            foreach (Atividade atividade in atividades)
+            {
+                dgvAtividades.Rows.Add(atividade.Id, atividade.Descricao);
+            }
+        }
+
+        private void btnCadastrarAtividade_Click(object sender, EventArgs e)
+        {
+            using (FormCadastroAtividade formCadastroAtividade = new FormCadastroAtividade(turmaId))
+            {
+                formCadastroAtividade.ShowDialog();
+                CarregarAtividades();
+            }
+        }
+
         private void btnExcluir_Click(object sender, EventArgs e)
         {
             Login login = new Login();
 
-            // Verifica se a turma tem atividades
             if (login.TurmaTemAtividades(turmaId))
             {
                 MessageBox.Show("Você não pode excluir uma turma com atividades cadastradas.");
                 return;
             }
 
-            // Confirmação de exclusão
             var confirmResult = MessageBox.Show("Você tem certeza que deseja excluir esta turma?", "Confirmação", MessageBoxButtons.YesNo);
             if (confirmResult == DialogResult.Yes)
             {
@@ -73,6 +105,18 @@ namespace TestePrático
             if (formMain != null)
             {
                 formMain.CarregarTurmas();
+            }
+        }
+
+        private void dgvAtividades_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0 && e.ColumnIndex == dgvAtividades.Columns["Visualizar"].Index)
+            {
+                int atividadeId = Convert.ToInt32(dgvAtividades.Rows[e.RowIndex].Cells["Id"].Value);
+                using (FormAtividades formAtividades = new FormAtividades(turmaId))
+                {
+                    formAtividades.ShowDialog();
+                }
             }
         }
     }

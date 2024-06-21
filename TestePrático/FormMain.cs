@@ -47,73 +47,41 @@ namespace TestePrático
 
         public void CarregarTurmas()
         {
-            dgvTurmas.Rows.Clear();
             dgvTurmas.Columns.Clear();
-
-            dgvTurmas.Columns.Add("Id", "Número");
+            dgvTurmas.Columns.Add("Id", "ID");
             dgvTurmas.Columns.Add("Nome", "Nome");
 
-            DataGridViewButtonColumn btnVisualizar = new DataGridViewButtonColumn
-            {
-                Name = "Visualizar",
-                Text = "Visualizar",
-                UseColumnTextForButtonValue = true
-            };
-            dgvTurmas.Columns.Add(btnVisualizar);
-
-            DataGridViewButtonColumn btnExcluir = new DataGridViewButtonColumn
-            {
-                Name = "Excluir",
-                Text = "Excluir",
-                UseColumnTextForButtonValue = true
-            };
-            dgvTurmas.Columns.Add(btnExcluir);
-
             List<Turma> turmas = database.GetTurmasByProfessor(Session.UserId);
+
+            dgvTurmas.Rows.Clear();
 
             foreach (Turma turma in turmas)
             {
                 dgvTurmas.Rows.Add(turma.Id, turma.Nome);
             }
+
+            DataGridViewButtonColumn btnVisualizar = new DataGridViewButtonColumn();
+            btnVisualizar.HeaderText = "Visualizar";
+            btnVisualizar.Name = "Visualizar";
+            btnVisualizar.Text = "Visualizar";
+            btnVisualizar.UseColumnTextForButtonValue = true;
+            dgvTurmas.Columns.Add(btnVisualizar);
         }
 
         private void dgvTurmas_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
+            if (e.RowIndex >= 0 && e.ColumnIndex == dgvTurmas.Columns["Visualizar"].Index)
             {
                 int turmaId = Convert.ToInt32(dgvTurmas.Rows[e.RowIndex].Cells["Id"].Value);
-
-                if (dgvTurmas.Columns[e.ColumnIndex].Name == "Visualizar")
-                {
-                    VisualizarTurma(turmaId);
-                }
-                else if (dgvTurmas.Columns[e.ColumnIndex].Name == "Excluir")
-                {
-                    ExcluirTurma(turmaId);
-                }
+                VisualizarTurma(turmaId);
             }
         }
 
         private void VisualizarTurma(int turmaId)
         {
-            FormVisualizar formVisualizar = new FormVisualizar(turmaId);
-            formVisualizar.Show();
-        }
-
-        private void ExcluirTurma(int turmaId)
-        {
-            var confirmResult = MessageBox.Show("Você tem certeza que deseja excluir esta turma?", "Confirmação", MessageBoxButtons.YesNo);
-            if (confirmResult == DialogResult.Yes)
+            using (FormVisualizar formVisualizar = new FormVisualizar(turmaId))
             {
-                if (database.ExcluirTurma(turmaId))
-                {
-                    MessageBox.Show("Turma excluída com sucesso.");
-                    CarregarTurmas();
-                }
-                else
-                {
-                    MessageBox.Show("Erro ao excluir turma.");
-                }
+                formVisualizar.ShowDialog();
             }
         }
     }

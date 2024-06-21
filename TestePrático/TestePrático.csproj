@@ -73,11 +73,23 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Atividade.cs" />
+    <Compile Include="FormAtividades.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormAtividades.Designer.cs">
+      <DependentUpon>FormAtividades.cs</DependentUpon>
+    </Compile>
     <Compile Include="FormCadastro.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="FormCadastro.Designer.cs">
       <DependentUpon>FormCadastro.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormCadastroAtividade.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormCadastroAtividade.Designer.cs">
+      <DependentUpon>FormCadastroAtividade.cs</DependentUpon>
     </Compile>
     <Compile Include="FormMain.cs">
       <SubType>Form</SubType>
@@ -102,8 +114,14 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Session.cs" />
     <Compile Include="Turma.cs" />
+    <EmbeddedResource Include="FormAtividades.resx">
+      <DependentUpon>FormAtividades.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormCadastro.resx">
       <DependentUpon>FormCadastro.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormCadastroAtividade.resx">
+      <DependentUpon>FormCadastroAtividade.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormMain.resx">
       <DependentUpon>FormMain.cs</DependentUpon>

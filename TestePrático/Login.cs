@@ -9,7 +9,7 @@ namespace TestePrático
 {
     public class Login
     {
-        private static string conn = @"server=sql.freedb.tech;port=3306;database=freedb_TestePratico;user=freedb_Atividade;password=P4xufURJ!tKH9w*";
+        static string conn = @"server=sql10.freesqldatabase.com;port=3306;database=sql10714026;user=sql10714026;password=pf5lL1idAD";
 
         public List<Turma> GetTurmasByProfessor(int professorId)
         {
@@ -18,7 +18,7 @@ namespace TestePrático
             using (var connection = new MySqlConnection(conn))
             {
                 connection.Open();
-                using (var command = new MySqlCommand("SELECT t.id, t.turma, p.nome FROM turma t JOIN professor p ON t.professor_id = p.id WHERE t.professor_id = @ProfessorId", connection))
+                using (var command = new MySqlCommand("SELECT t.Id, t.Nome AS Turma, p.Nome FROM Turma t JOIN Professor p ON t.ProfessorId = p.Id WHERE t.ProfessorId = @ProfessorId", connection))
                 {
                     command.Parameters.AddWithValue("@ProfessorId", professorId);
                     using (var reader = command.ExecuteReader())
@@ -30,10 +30,10 @@ namespace TestePrático
 
                         while (reader.Read())
                         {
-                            int id = reader.GetInt32("id");
+                            int id = reader.GetInt32("Id");
                             int idProfessor = professorId;
-                            string nomeProfessor = reader.GetString("nome");
-                            string nomeTurma = reader.GetString("turma");
+                            string nomeProfessor = reader.GetString("Nome");
+                            string nomeTurma = reader.GetString("Turma");
                             turmas.Add(new Turma(id, idProfessor, nomeTurma, nomeProfessor));
                         }
                     }
@@ -43,6 +43,32 @@ namespace TestePrático
             return turmas;
         }
 
+        public Turma GetTurmaById(int turmaId)
+        {
+            using (var connection = new MySqlConnection(conn))
+            {
+                connection.Open();
+                using (var command = new MySqlCommand("SELECT t.Id, t.Nome AS Turma, t.ProfessorId, p.Nome AS NomeProfessor FROM Turma t JOIN Professor p ON t.ProfessorId = p.Id WHERE t.Id = @TurmaId", connection))
+                {
+                    command.Parameters.AddWithValue("@TurmaId", turmaId);
+                    using (var reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            int id = reader.GetInt32("Id");
+                            int professorId = reader.GetInt32("ProfessorId");
+                            string nomeTurma = reader.GetString("Turma");
+                            string nomeProfessor = reader.GetString("NomeProfessor");
+
+                            return new Turma(id, professorId, nomeTurma, nomeProfessor);
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+
         public bool ExcluirTurma(int turmaId)
         {
             using (var connection = new MySqlConnection(conn))
@@ -50,7 +76,7 @@ namespace TestePrático
                 try
                 {
                     connection.Open();
-                    using (var command = new MySqlCommand("DELETE FROM turma WHERE id = @TurmaId", connection))
+                    using (var command = new MySqlCommand("DELETE FROM Turma WHERE id = @TurmaId", connection))
                     {
                         command.Parameters.AddWithValue("@TurmaId", turmaId);
                         command.ExecuteNonQuery();
@@ -67,16 +93,16 @@ namespace TestePrático
 
         public bool ValidateLogin(string email, string senha)
         {
-            string hashedSenha = HashSenha(senha);
-
             using (var connection = new MySqlConnection(conn))
             {
                 connection.Open();
-                using (var command = new MySqlCommand("SELECT COUNT(*) FROM professor WHERE email = @Email AND senha = @Senha", connection))
+                using (var command = new MySqlCommand("SELECT COUNT(*) FROM Professor WHERE Email = @Email AND Senha = @Senha", connection))
                 {
                     command.Parameters.AddWithValue("@Email", email);
-                    command.Parameters.AddWithValue("@Senha", hashedSenha);
-                    return Convert.ToInt32(command.ExecuteScalar()) > 0;
+                    command.Parameters.AddWithValue("@Senha", senha);  
+                    int count = Convert.ToInt32(command.ExecuteScalar());
+                    Console.WriteLine($"Email: {email}, Senha: {senha}, Count: {count}"); 
+                    return count > 0;
                 }
             }
         }
@@ -86,7 +112,7 @@ namespace TestePrático
             using (var connection = new MySqlConnection(conn))
             {
                 connection.Open();
-                using (var command = new MySqlCommand("SELECT nome FROM professor WHERE id = @UserId", connection))
+                using (var command = new MySqlCommand("SELECT Nome FROM Professor WHERE Id = @UserId", connection))
                 {
                     command.Parameters.AddWithValue("@UserId", userId);
                     var result = command.ExecuteScalar();
@@ -100,7 +126,7 @@ namespace TestePrático
             using (var connection = new MySqlConnection(conn))
             {
                 connection.Open();
-                using (var command = new MySqlCommand("SELECT id FROM professor WHERE email = @Email", connection))
+                using (var command = new MySqlCommand("SELECT Id FROM Professor WHERE Email = @Email", connection))
                 {
                     command.Parameters.AddWithValue("@Email", email);
                     var result = command.ExecuteScalar();
@@ -133,19 +159,6 @@ namespace TestePrático
             }
         }
 
-        public bool TurmaTemAtividades(int turmaId)
-        {
-            using (var connection = new MySqlConnection(conn))
-            {
-                connection.Open();
-                using (var command = new MySqlCommand("SELECT COUNT(*) FROM atividades WHERE turma_id = @TurmaId", connection))
-                {
-                    command.Parameters.AddWithValue("@TurmaId", turmaId);
-                    return Convert.ToInt32(command.ExecuteScalar()) > 0;
-                }
-            }
-        }
-
         public bool CadastrarAtividade(int turmaId, string descricao)
         {
             using (var connection = new MySqlConnection(conn))
@@ -164,6 +177,41 @@ namespace TestePrático
                 catch (Exception ex)
                 {
                     Console.WriteLine("Erro ao cadastrar atividade: " + ex.Message);
+                    return false;
+                }
+            }
+        }
+
+        public bool TurmaTemAtividades(int turmaId)
+        {
+            using (var connection = new MySqlConnection(conn))
+            {
+                connection.Open();
+                using (var command = new MySqlCommand("SELECT COUNT(*) FROM Atividade WHERE TurmaId = @TurmaId", connection))
+                {
+                    command.Parameters.AddWithValue("@TurmaId", turmaId);
+                    return Convert.ToInt32(command.ExecuteScalar()) > 0;
+                }
+            }
+        }
+
+        public bool ExcluirAtividade(int atividadeId)
+        {
+            using (var connection = new MySqlConnection(conn))
+            {
+                try
+                {
+                    connection.Open();
+                    using (var command = new MySqlCommand("DELETE FROM Atividade WHERE Id = @AtividadeId", connection))
+                    {
+                        command.Parameters.AddWithValue("@AtividadeId", atividadeId);
+                        command.ExecuteNonQuery();
+                        return true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Erro ao excluir atividade: " + ex.Message);
                     return false;
                 }
             }
@@ -199,7 +247,7 @@ namespace TestePrático
             using (var connection = new MySqlConnection(conn))
             {
                 connection.Open();
-                using (var command = new MySqlCommand("SELECT nome FROM professor WHERE id = (SELECT professor_id FROM turma WHERE id = @TurmaId)", connection))
+                using (var command = new MySqlCommand("SELECT Nome FROM Professor WHERE Id = (SELECT ProfessorId FROM Turma WHERE Id = @TurmaId)", connection))
                 {
                     command.Parameters.AddWithValue("@TurmaId", turmaId);
                     var result = command.ExecuteScalar();
@@ -213,51 +261,12 @@ namespace TestePrático
             using (var connection = new MySqlConnection(conn))
             {
                 connection.Open();
-                using (var command = new MySqlCommand("SELECT turma FROM turma WHERE id = @TurmaId", connection))
+                using (var command = new MySqlCommand("SELECT Nome FROM Turma WHERE Id = @TurmaId", connection))
                 {
                     command.Parameters.AddWithValue("@TurmaId", turmaId);
                     var result = command.ExecuteScalar();
                     return result != null ? result.ToString() : "";
                 }
-            }
-        }
-
-        public Turma GetTurmaById(int turmaId)
-        {
-            using (var connection = new MySqlConnection(conn))
-            {
-                connection.Open();
-                using (var command = new MySqlCommand("SELECT * FROM turma WHERE id = @TurmaId", connection))
-                {
-                    command.Parameters.AddWithValue("@TurmaId", turmaId);
-                    using (var reader = command.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-                            int id = reader.GetInt32("id");
-                            int professorId = reader.GetInt32("professor_id");
-                            string nome = reader.GetString("nome");
-                            string turma = reader.GetString("turma");
-
-                            return new Turma(id, professorId, nome, turma);
-                        }
-                    }
-                }
-            }
-            return null;
-        }
-
-        private string HashSenha(string senha)
-        {
-            using (SHA256 sha256Hash = SHA256.Create())
-            {
-                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(senha));
-                StringBuilder builder = new StringBuilder();
-                for (int i = 0; i < bytes.Length; i++)
-                {
-                    builder.Append(bytes[i].ToString("x2"));
-                }
-                return builder.ToString();
             }
         }
     }
