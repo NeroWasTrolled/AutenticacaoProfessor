@@ -5,119 +5,125 @@ using System.Windows.Forms;
 
 namespace TestePrático
 {
-    public partial class FormVisualizar : Form
-    {
-        private int turmaId;
-        private Login database;
+	public partial class FormVisualizar : Form
+	{
+		private int turmaId;
+		private Login database;
 
-        public FormVisualizar(int turmaId)
-        {
-            InitializeComponent();
-            this.turmaId = turmaId;
-            database = new Login();
+		public FormVisualizar(int turmaId)
+		{
+			InitializeComponent();
+			this.turmaId = turmaId;
+			database = new Login();
 
-            PreencherDadosTurma();
-            CarregarAtividades();
-            this.FormClosing += FormVisualizar_FormClosing;
-        }
+			PreencherDadosTurma();
+			CarregarAtividades();
+			this.FormClosing += FormVisualizar_FormClosing;
+			this.Activated += FormVisualizar_Activated; 
+		}
 
-        private void PreencherDadosTurma()
-        {
-            Turma turma = database.GetTurmaById(turmaId);
+		private void FormVisualizar_Activated(object sender, EventArgs e)
+		{
+			CarregarAtividades(); 
+		}
 
-            if (turma != null)
-            {
-                lblTurma.Text = turma.Nome;
-                lblProfessor.Text = turma.NomeProfessor;
-            }
-            else
-            {
-                MessageBox.Show("Turma não encontrada.");
-                this.Close();
-            }
-        }
+		private void PreencherDadosTurma()
+		{
+			Turma turma = database.GetTurmaById(turmaId);
 
-        private void CarregarAtividades()
-        {
-            dgvAtividades.Rows.Clear();
-            dgvAtividades.Columns.Clear();
+			if (turma != null)
+			{
+				lblTurma.Text = turma.Nome;
+				lblProfessor.Text = turma.NomeProfessor;
+			}
+			else
+			{
+				MessageBox.Show("Turma não encontrada.");
+				this.Close();
+			}
+		}
 
-            dgvAtividades.Columns.Add("Id", "Número");
-            dgvAtividades.Columns.Add("Descricao", "Descrição");
+		private void CarregarAtividades()
+		{
+			dgvAtividades.Rows.Clear();
+			dgvAtividades.Columns.Clear();
 
-            DataGridViewButtonColumn btnVisualizar = new DataGridViewButtonColumn();
-            btnVisualizar.HeaderText = "Visualizar";
-            btnVisualizar.Name = "Visualizar";
-            btnVisualizar.Text = "Visualizar";
-            btnVisualizar.UseColumnTextForButtonValue = true;
-            dgvAtividades.Columns.Add(btnVisualizar);
+			dgvAtividades.Columns.Add("Id", "Número");
+			dgvAtividades.Columns.Add("Descricao", "Descrição");
 
-            List<Atividade> atividades = database.GetAtividadesByTurma(turmaId);
+			DataGridViewButtonColumn btnVisualizar = new DataGridViewButtonColumn();
+			btnVisualizar.HeaderText = "Visualizar";
+			btnVisualizar.Name = "Visualizar";
+			btnVisualizar.Text = "Visualizar";
+			btnVisualizar.UseColumnTextForButtonValue = true;
+			dgvAtividades.Columns.Add(btnVisualizar);
 
-            foreach (Atividade atividade in atividades)
-            {
-                dgvAtividades.Rows.Add(atividade.Id, atividade.Descricao);
-            }
-        }
+			List<Atividade> atividades = database.GetAtividadesByTurma(turmaId);
 
-        private void btnCadastrarAtividade_Click(object sender, EventArgs e)
-        {
-            using (FormCadastroAtividade formCadastroAtividade = new FormCadastroAtividade(turmaId))
-            {
-                formCadastroAtividade.ShowDialog();
-                CarregarAtividades();
-            }
-        }
+			foreach (Atividade atividade in atividades)
+			{
+				dgvAtividades.Rows.Add(atividade.Id, atividade.Descricao);
+			}
+		}
 
-        private void btnExcluir_Click(object sender, EventArgs e)
-        {
-            Login login = new Login();
+		private void btnCadastrarAtividade_Click(object sender, EventArgs e)
+		{
+			using (FormCadastroAtividade formCadastroAtividade = new FormCadastroAtividade(turmaId))
+			{
+				formCadastroAtividade.FormClosed += (s, args) => CarregarAtividades();
+				formCadastroAtividade.ShowDialog();
+			}
+		}
 
-            if (login.TurmaTemAtividades(turmaId))
-            {
-                MessageBox.Show("Você não pode excluir uma turma com atividades cadastradas.");
-                return;
-            }
+		private void btnExcluir_Click(object sender, EventArgs e)
+		{
+			Login login = new Login();
 
-            var confirmResult = MessageBox.Show("Você tem certeza que deseja excluir esta turma?", "Confirmação", MessageBoxButtons.YesNo);
-            if (confirmResult == DialogResult.Yes)
-            {
-                if (login.ExcluirTurma(turmaId))
-                {
-                    MessageBox.Show("Turma excluída com sucesso!");
-                    this.Close();
-                }
-                else
-                {
-                    MessageBox.Show("Erro ao excluir a turma.");
-                }
-            }
-        }
+			if (login.TurmaTemAtividades(turmaId))
+			{
+				MessageBox.Show("Você não pode excluir uma turma com atividades cadastradas.");
+				return;
+			}
 
-        private void btnSair_Click(object sender, EventArgs e)
-        {
-            this.Close();
-        }
+			var confirmResult = MessageBox.Show("Você tem certeza que deseja excluir esta turma?", "Confirmação", MessageBoxButtons.YesNo);
+			if (confirmResult == DialogResult.Yes)
+			{
+				if (login.ExcluirTurma(turmaId))
+				{
+					MessageBox.Show("Turma excluída com sucesso!");
+					this.Close();
+				}
+				else
+				{
+					MessageBox.Show("Erro ao excluir a turma.");
+				}
+			}
+		}
 
-        private void FormVisualizar_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            FormMain formMain = Application.OpenForms.OfType<FormMain>().FirstOrDefault();
-            if (formMain != null)
-            {
-                formMain.CarregarTurmas();
-            }
-        }
+		private void btnSair_Click(object sender, EventArgs e)
+		{
+			this.Close();
+		}
 
-        private void dgvAtividades_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex >= 0 && e.ColumnIndex == dgvAtividades.Columns["Visualizar"].Index)
-            {
-                int atividadeId = Convert.ToInt32(dgvAtividades.Rows[e.RowIndex].Cells["Id"].Value);
-                using (FormAtividades formAtividades = new FormAtividades(turmaId))
-                {
-                    formAtividades.ShowDialog();
-                }
-            }
-        }
-    }
+		private void FormVisualizar_FormClosing(object sender, FormClosingEventArgs e)
+		{
+			FormMain formMain = Application.OpenForms.OfType<FormMain>().FirstOrDefault();
+			if (formMain != null)
+			{
+				formMain.CarregarTurmas();
+			}
+		}
+
+		private void dgvAtividades_CellContentClick(object sender, DataGridViewCellEventArgs e)
+		{
+			if (e.RowIndex >= 0 && e.ColumnIndex == dgvAtividades.Columns["Visualizar"].Index)
+			{
+				int atividadeId = Convert.ToInt32(dgvAtividades.Rows[e.RowIndex].Cells["Id"].Value);
+				using (FormAtividades formAtividades = new FormAtividades(turmaId))
+				{
+					formAtividades.ShowDialog();
+				}
+			}
+		}
+	}
 }

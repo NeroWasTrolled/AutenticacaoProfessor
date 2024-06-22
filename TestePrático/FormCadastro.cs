@@ -27,30 +27,29 @@ namespace TestePrático
             }
         }
 
-        private void btnCadastrar_Click(object sender, EventArgs e)
-        {
-            string nomeTurma = txtTurma.Text.Trim();
-            int idProfessor = Session.UserId;
-            string nomeProfessor = Session.Nome;
+		private void btnCadastrar_Click(object sender, EventArgs e)
+		{
+			string nomeTurma = txtTurma.Text.Trim();
+			int idProfessor = Session.UserId;
 
-            if (string.IsNullOrWhiteSpace(nomeTurma))
-            {
-                MessageBox.Show("Por favor, insira o nome da turma.");
-                return;
-            }
+			if (string.IsNullOrWhiteSpace(nomeTurma))
+			{
+				MessageBox.Show("Por favor, insira o nome da turma.");
+				return;
+			}
 
-            if (login.CadastrarTurma(idProfessor, nomeTurma, nomeProfessor))
-            {
-                MessageBox.Show("Turma cadastrada com sucesso!");
-                txtTurma.Clear();
-            }
-            else
-            {
-                MessageBox.Show("Erro ao cadastrar turma.");
-            }
-        }
+			if (login.CadastrarTurma(idProfessor, nomeTurma))
+			{
+				MessageBox.Show("Turma cadastrada com sucesso!");
+				txtTurma.Clear();
+			}
+			else
+			{
+				MessageBox.Show("Erro ao cadastrar turma.");
+			}
+		}
 
-        private void btnSair_Click(object sender, EventArgs e)
+		private void btnSair_Click(object sender, EventArgs e)
         {
             this.Close();
         }

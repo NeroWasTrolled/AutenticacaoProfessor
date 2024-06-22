@@ -30,3 +30,4 @@ C:\Users\Aluno\Source\Repos\AutenticacaoProfessor\TestePrático\bin\Debug\System
 C:\Users\Aluno\Source\Repos\AutenticacaoProfessor\TestePrático\obj\Debug\TestePrático.csproj.CopyComplete
 C:\Users\Aluno\Source\Repos\AutenticacaoProfessor\TestePrático\obj\Debug\TestePrático.exe
 C:\Users\Aluno\Source\Repos\AutenticacaoProfessor\TestePrático\obj\Debug\TestePrático.pdb
+C:\Users\Aluno\Source\Repos\AutenticacaoProfessor\TestePrático\obj\Debug\TestePrático.csproj.SuggestedBindingRedirects.cache
